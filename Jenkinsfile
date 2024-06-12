@@ -7,5 +7,26 @@ pipeline {
                 checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'Git-token', url: 'https://github.com/anilkumarsripadam/jenkins-kube-project.git']])
             }
         }
+        stage('Maven test'){
+            steps{
+                script{
+                    sh 'mvn test'
+                }
+            }
+        }
+        stage('intigration testing'){
+            steps{
+                script{
+                    sh 'mvn verify -DskipUnitTests'
+                }
+            }
+        }
+        stage('maven build'){
+            steps{
+                script{
+                    sh 'mvn clean install'
+                }
+            }
+        }
     }
 }
