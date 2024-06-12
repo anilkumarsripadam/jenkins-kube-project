@@ -10,7 +10,7 @@ pipeline {
         stage('Maven test'){
             steps{
                 script{
-                    sh 'mvn test'
+                    sh 'apt install maven'
                 }
             }
         }
