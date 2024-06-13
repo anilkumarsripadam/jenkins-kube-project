@@ -44,5 +44,31 @@ pipeline {
                 }
             }
         }
+        stage('upload war file to nexus'){
+            steps{
+                sript{
+                    def readPomVersion = readMavenPom file: 'pom.xml'
+                    def version = readPomVersion.version
+                    def artifactPath = "target/ci-cd-${version}.jar"
+                    def nexusRepo = readPomVersion.version.endsWith('SNAPSHOT') ? "spring-boot-snapshot" : "sring-boot-release"
+                    nexusArtifactUploader artifacts: 
+                    [
+                        [
+                            artifactId: 'ci-cd', 
+                            classifier: '', 
+                            file: artifactPath, 
+                            type: 'jar'
+                        ]
+                    ],
+                    credentialsId: 'nexus-auth', 
+                    groupId: 'com.example', 
+                    nexusUrl: 'http://nexus.anil.local:8081', 
+                    nexusVersion: 'nexus3', 
+                    protocol: 'http', 
+                    repository: nexusRepo, 
+                    version: "${readPomVersion.version}"
+                }
+            }
+        }
     }
 }
