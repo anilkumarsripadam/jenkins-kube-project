@@ -46,7 +46,8 @@ pipeline {
         }
         stage('upload war file to nexus'){
             steps{
-                sript{
+                script{
+
                     def readPomVersion = readMavenPom file: 'pom.xml'
                     def version = readPomVersion.version
                     def artifactPath = "target/ci-cd-${version}.jar"
