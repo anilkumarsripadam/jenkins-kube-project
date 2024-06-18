@@ -51,7 +51,7 @@ pipeline {
                     def readPomVersion = readMavenPom file: 'pom.xml'
                     def version = readPomVersion.version
                     def artifactPath = "target/ci-cd-${version}.jar"
-                    def nexusRepo = readPomVersion.version.endsWith('SNAPSHOT') ? "spring-boot-snapshot/" : "sring-boot-release"
+                    def nexusRepo = readPomVersion.version.endsWith('SNAPSHOT') ? "spring-boot-snapshot" : "sring-boot-release"
                     nexusArtifactUploader artifacts: 
                     [
                         [
@@ -63,7 +63,7 @@ pipeline {
                     ],
                     credentialsId: 'nexus-auth', 
                     groupId: 'com.example', 
-                    nexusUrl: 'nexus.anil.local', 
+                    nexusUrl: 'nexus:8081', 
                     nexusVersion: 'nexus3', 
                     protocol: 'http', 
                     repository: nexusRepo, 
