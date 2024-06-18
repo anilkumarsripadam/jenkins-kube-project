@@ -61,7 +61,7 @@ pipeline {
                             type: 'jar'
                         ]
                     ],
-                    credentialsId: 'nexus-auth', 
+                    credentialsId: 'nexus.anil.local', 
                     groupId: 'com.example', 
                     nexusUrl: 'nexus:8081', 
                     nexusVersion: 'nexus3', 
