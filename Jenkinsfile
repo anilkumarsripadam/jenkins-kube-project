@@ -71,5 +71,25 @@ pipeline {
                 }
             }
         }
+        stage('docker build'){
+            steps{
+                script{
+                    sh 'docker image build -t $JOB_NAME:v1.$BUILD_ID .'
+                    sh 'docker image tag $JOB_NAME:v1.$BUILD_ID anilkumar9993/$JOB_NAME:v1.$BUILD_ID'
+                    sh 'docker image tag $JOB_NAME:v1.$BUILD_ID anilkumar9993/$JOB_NAME:latest'
+                }
+            }
+        }
+        stage('docker push-build-image'){
+            steps{
+                script{
+                    withCredentials([string(credentialsId: 'docker_token', variable: 'docker_token')]){
+                        sh 'echo ${ocker_token}'
+                        sh 'docker login -u anilkumar9993 -p ${docker_token}'
+                        sh 'docker image push anilkumar9993/$JOB_NAME:v1.$BUILD_ID'
+                        sh 'docker image push anilkumar9993/$JOB_NAME:latest'
+                }
+            }
+        }
     }
 }
