@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment {
         DOCKER_HOST = 'tcp://10.21.34.232:2375' // Replace <YOUR_LOCAL_HOST_IP> with the actual IP address of your local host
+    }
     stages {
         stage('Git Checkout') {
             steps {
@@ -95,4 +96,3 @@ pipeline {
     }
   }
  }
-}
