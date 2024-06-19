@@ -1,9 +1,10 @@
 pipeline {
     agent any
 
-        environment {
+    environment {
         REMOTE_SERVER = '10.21.34.232'
         SSH_USER = 'anil'
+        SSH_CREDENTIALS_ID = 'ssh-key' // Jenkins credentials ID for SSH private key
     }
 
     stages {
@@ -77,15 +78,19 @@ pipeline {
             }
         }
         stage('SSH to Remote Server') {
+        stage('SSH to Remote Server') {
             steps {
                 script {
-                    // Execute commands on the remote server using SSH
-                    withCredentials([usernamePassword(credentialsId: 'ssh-creds', usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASSWORD')]) {
-                        def sshCommand = "sshpass -p \"${SSH_PASSWORD}\" ssh ${SSH_USER}@${REMOTE_SERVER} 'ls -l'"
-                        def sshOutput = sh(returnStdout: true, script: sshCommand)
+                    // Define SSH key file path (usually stored in Jenkins credentials)
+                    def sshKey = credentials("${SSH_CREDENTIALS_ID}")
 
-                        println "SSH Command Output:"
-                        println sshOutput.trim()
+                    // Construct SSH command using SSH key file
+                    def sshCommand = "ssh -i ${sshKey} ${SSH_USER}@${REMOTE_SERVER} 'ls -l'"
+                    def sshOutput = sh(returnStdout: true, script: sshCommand).trim()
+
+                    // Print the output of the SSH command
+                    println "SSH Command Output:"
+                    println sshOutput
                     }
                 }
             }
