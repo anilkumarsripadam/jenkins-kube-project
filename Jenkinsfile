@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKER_CREDENTIALS_ID = 'docker_token' // Jenkins credentials ID for Docker Hub
+        DOCKER_CREDENTIALS_ID = 'docker_tocken' // Jenkins credentials ID for Docker Hub
     }
     stages {
         stage('Git Checkout') {
