@@ -75,7 +75,7 @@ pipeline {
         }
         stage('git check-out'){
             steps{
-                git 'https://github.com/anilkumarsripadam/jenkins-kube-project.git'  // Replace with your repository
+                git branch: 'main', url: 'https://github.com/anilkumarsripadam/jenkins-kube-project.git'  // Replace with your repository
 
             }
         }
