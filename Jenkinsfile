@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        DOCKER_HOST = 'tcp://10.21.34.232:2375' // Replace <YOUR_LOCAL_HOST_IP> with the actual IP address of your local host
+        DOCKER_CREDENTIALS_ID = 'docker_token' // Jenkins credentials ID for Docker Hub
     }
     stages {
         stage('Git Checkout') {
@@ -70,6 +70,27 @@ pipeline {
                     protocol: 'http', 
                     repository: nexusRepo, 
                     version: "${readPomVersion.version}"
+                }
+            }
+        }
+        stage('git check-out'){
+            steps{
+                git 'https://github.com/anilkumarsripadam/jenkins-kube-project.git'  // Replace with your repository
+
+            }
+        }
+        stage('docker build'){
+            steps{
+                script{
+                    def imageName = "anilkumar9993/${JOB_NAME}"
+                    def imageTag = "v1.${BUILD_ID}"
+                    def latestTag = "latest"
+
+                    docker.withRegistry('https://registry.hub.docker.com', "${DOCKER_CREDENTIALS_ID}") {
+                        def customImage = docker.build("${imageName}:${imageTag}")
+                        customImage.push()
+                        customImage.push(latestTag)
+                    }    
                 }
             }
         }
