@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+        environment {
+        REMOTE_SERVER = '10.21.34.232'
+        SSH_USER = 'anil'
+    }
+
     stages {
         stage('Git Checkout') {
             steps {
@@ -71,19 +76,19 @@ pipeline {
                 }
             }
         }
-        stage('ssh to host server'){
-            steps{
-                script{
-                    // SSH to remote server and execute a command
-                    sshCommand remote: [
-                        host: '10.21.34.232',
-                        credentialsId: 'ssh-creds',
-                        username: 'anil',
-                        password: 'Anil@123',
-                        command: 'ls -l' // Replace with your command
-                    ]
+        stage('SSH to Remote Server') {
+            steps {
+                script {
+                    // Execute commands on the remote server using SSH
+                    withCredentials([usernamePassword(credentialsId: 'ssh-creds', usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASSWORD')]) {
+                        def sshCommand = "sshpass -p ${SSH_PASSWORD} ssh ${SSH_USER}@${REMOTE_SERVER} 'ls -l'"
+                        def sshOutput = sh(returnStdout: true, script: sshCommand)
+
+                        println "SSH Command Output:"
+                        println sshOutput.trim()
+                    }
                 }
             }
         }
     }
- }
+}
