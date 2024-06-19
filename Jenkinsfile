@@ -81,7 +81,7 @@ pipeline {
                 script {
                     // Execute commands on the remote server using SSH
                     withCredentials([usernamePassword(credentialsId: 'ssh-creds', usernameVariable: 'SSH_USER', passwordVariable: 'SSH_PASSWORD')]) {
-                        def sshCommand = "sshpass -p ${SSH_PASSWORD} ssh ${SSH_USER}@${REMOTE_SERVER} 'ls -l'"
+                        def sshCommand = "sshpass -p '${SSH_PASSWORD}' ssh ${SSH_USER}@${REMOTE_SERVER} 'ls -l'"
                         def sshOutput = sh(returnStdout: true, script: sshCommand)
 
                         println "SSH Command Output:"
