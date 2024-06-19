@@ -73,9 +73,10 @@ pipeline {
                 }
             }
         }
-        stage('Git Checkout') {
-            steps {
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'Git-token', url: 'https://github.com/anilkumarsripadam/jenkins-kube-project.git']])
+        stage('git check-out'){
+            steps{
+                git 'https://github.com/anilkumarsripadam/jenkins-kube-project.git'  // Replace with your repository
+
             }
         }
         stage('docker build'){
