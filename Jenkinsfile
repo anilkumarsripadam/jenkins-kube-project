@@ -78,7 +78,6 @@ pipeline {
             }
         }
         stage('SSH to Remote Server') {
-        stage('SSH to Remote Server') {
             steps {
                 script {
                     // Define SSH key file path (usually stored in Jenkins credentials)
@@ -96,4 +95,3 @@ pipeline {
             }
         }
     }
-}
