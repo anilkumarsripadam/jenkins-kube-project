@@ -1,5 +1,6 @@
 pipeline {
     agent any
+        docker { image 'docker:stable' }
     environment {
         DOCKER_CREDENTIALS_ID = 'docker_token' // Jenkins credentials ID for Docker Hub
     }
