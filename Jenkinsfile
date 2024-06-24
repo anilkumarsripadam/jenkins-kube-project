@@ -50,48 +50,5 @@ pipeline {
                 }
             }
         }
-        stage('upload war file to nexus'){
-            steps{
-                script{
-
-                    def readPomVersion = readMavenPom file: 'pom.xml'
-                    def version = readPomVersion.version
-                    def artifactPath = "target/ci-cd-${version}.jar"
-                    def nexusRepo = readPomVersion.version.endsWith('SNAPSHOT') ? "spring-boot-snapshot" : "sring-boot-release"
-                    nexusArtifactUploader artifacts: 
-                    [
-                        [
-                            artifactId: 'ci-cd', 
-                            classifier: '', 
-                            file: artifactPath, 
-                            type: 'jar'
-                        ]
-                    ],
-                    credentialsId: 'nexus-auth', 
-                    groupId: 'com.example', 
-                    nexusUrl: 'nexus:8081', 
-                    nexusVersion: 'nexus3', 
-                    protocol: 'http', 
-                    repository: nexusRepo, 
-                    version: "${readPomVersion.version}"
-                }
-            }
-        }
-        stage('SSH to Remote Server') {
-            steps {
-                script {
-                    // Define SSH key file path (usually stored in Jenkins credentials)
-                    def sshKey = credentials("${SSH_CREDENTIALS_ID}")
-
-                    // Construct SSH command using SSH key file
-                    def sshCommand = "ssh -i ${sshKey} ${SSH_USER}@${REMOTE_SERVER} 'ls -l'"
-                    def sshOutput = sh(returnStdout: true, script: sshCommand).trim()
-
-                    // Print the output of the SSH command
-                    println "SSH Command Output:"
-                    println sshOutput
-                    }
-                }
-            }
-        }
     }
+}       
