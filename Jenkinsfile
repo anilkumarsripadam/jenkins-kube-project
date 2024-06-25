@@ -1,6 +1,6 @@
 pipeline {
     agent {
-         kubernetes {
+        kubernetes {
             label 'docker-agent'
             yaml """
 apiVersion: v1
@@ -45,69 +45,85 @@ spec:
         }
         stage('Maven test') {
             steps {
-                sh 'mvn test'
+                container('maven') {
+                    sh 'mvn test'
+                }
             }
         }
         stage('Integration Testing') {
             steps {
-                sh 'mvn verify -DskipUnitTests'
+                container('maven') {
+                    sh 'mvn verify -DskipUnitTests'
+                }
             }
         }
         stage('Maven Build') {
             steps {
-                sh 'mvn clean install'
+                container('maven') {
+                    sh 'mvn clean install'
+                }
             }
         }
         stage('Static Code Analysis') {
             steps {
-                withSonarQubeEnv('sonar-secret') {
-                    sh 'mvn clean package sonar:sonar'
+                container('maven') {
+                    withSonarQubeEnv('sonar-secret') {
+                        sh 'mvn clean package sonar:sonar'
+                    }
                 }
             }
         }
         stage('Quality Gate') {
             steps {
-                waitForQualityGate abortPipeline: false, credentialsId: 'sonar-secret'
+                container('maven') {
+                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-secret'
+                }
             }
         }
         stage('Upload WAR File to Nexus') {
             steps {
-                script {
-                    def readPomVersion = readMavenPom file: 'pom.xml'
-                    def version = readPomVersion.version
-                    def artifactPath = "target/ci-cd-${version}.jar"
-                    def nexusRepo = readPomVersion.version.endsWith('SNAPSHOT') ? "spring-boot-snapshot" : "spring-boot-release"
-                    nexusArtifactUploader artifacts: [
-                        [artifactId: 'ci-cd', classifier: '', file: artifactPath, type: 'jar']
-                    ],
-                    credentialsId: 'nexus-auth',
-                    groupId: 'com.example',
-                    nexusUrl: '10.21.34.152:8081',
-                    nexusVersion: 'nexus3',
-                    protocol: 'http',
-                    repository: nexusRepo,
-                    version: "${readPomVersion.version}"
+                container('maven') {
+                    script {
+                        def readPomVersion = readMavenPom file: 'pom.xml'
+                        def version = readPomVersion.version
+                        def artifactPath = "target/ci-cd-${version}.jar"
+                        def nexusRepo = readPomVersion.version.endsWith('SNAPSHOT') ? "spring-boot-snapshot" : "spring-boot-release"
+                        nexusArtifactUploader artifacts: [
+                            [artifactId: 'ci-cd', classifier: '', file: artifactPath, type: 'jar']
+                        ],
+                        credentialsId: 'nexus-auth',
+                        groupId: 'com.example',
+                        nexusUrl: '10.21.34.152:8081',
+                        nexusVersion: 'nexus3',
+                        protocol: 'http',
+                        repository: nexusRepo,
+                        version: "${version}"
+                    }
                 }
             }
         }
         stage('Build Docker Image') {
             steps {
-                script {
-                    def readPomVersion = readMavenPom file: 'pom.xml'
-                    def version = readPomVersion.version
-                    def dockerImage = "${DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAME}:${version}"
-                    sh "docker build -t ${dockerImage} ."
+                container('docker') {
+                    script {
+                        def readPomVersion = readMavenPom file: 'pom.xml'
+                        def version = readPomVersion.version
+                        def dockerImage = "${DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAME}:${version}"
+                        sh "docker build -t ${dockerImage} ."
+                    }
                 }
             }
         }
         stage('Push Docker Image') {
             steps {
-                script {
-                    def readPomVersion = readMavenPom file: 'pom.xml'
-                    def version = readPomVersion.version
-                    def dockerImage = "${DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAME}:${version}"
-                    withDockerRegistry([ credentialsId: DOCKER_REGISTRY_CREDENTIALS, url: DOCKER_REGISTRY_URL ]) {
-                        sh "docker push ${dockerImage}"
+                container('docker') {
+                    script {
+                        def readPomVersion = readMavenPom file: 'pom.xml'
+                        def version = readPomVersion.version
+                        def dockerImage = "${DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAME}:${version}"
+                        withDockerRegistry([ credentialsId: DOCKER_REGISTRY_CREDENTIALS, url: DOCKER_REGISTRY_URL ]) {
+                            sh "docker push ${dockerImage}"
+                        }
                     }
                 }
             }
