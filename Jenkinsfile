@@ -90,20 +90,68 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    def appName = 'spring-app' // Replace with your app name
-                    def dockerImage = "${appName}:${env.BUILD_NUMBER}"
+        stage('kubernets-deployment'){
+            steps{
+                script{
+                    def appName = 'spring-app'
+                    def dockerImage = "anilkumar9993/${appName}:${env.BUILD_NUMBER}"
+                    writeFile file: 'k8s-deployment.yaml', text: """
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${appName}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${appName}
+  template:
+    metadata:
+      labels:
+        app: ${appName}
+    spec:
+      containers:
+      - name: ${appName}
+        image: ${dockerImage}
+        ports:
+        - containerPort: 8080
 
-                    // Substitute the Docker image in the deployment.yaml
-                    sh """
-                    sed -i 's|<IMAGE>|${dockerImage}|g' deployment.yaml
-                    kubectl apply -f deployment.yaml
-                    kubectl rollout status deployment/${appName}
-                    """
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${appName}
+spec:
+  selector:
+    app: ${appName}
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ${appName}-ingress
+spec:
+  rules:
+  - host: ${appName}.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ${appName}
+            port:
+              number: 80
+"""
+                    sh 'kubectl apply -f k8s-deployment.yaml'
                 }
-            }
+            }    
         }
     }
 }
