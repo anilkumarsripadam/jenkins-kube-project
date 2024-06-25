@@ -72,9 +72,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    def appName = 'sring-app' // Replace with your app name
+                    def appName = 'spring-app' // Replace with your app name
                     def dockerImage = "${appName}:${env.BUILD_NUMBER}"
                     sh "docker build -t ${dockerImage} ."
+                    sh "docker tag ${dockerImage} anilkumar9993/${dockerImage}"
                 }
             }
         }
