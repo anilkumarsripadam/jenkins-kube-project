@@ -4,8 +4,8 @@ WORKDIR /app
 COPY . .
 RUN mvn clean install
 
-# Stage 2: Build the Docker image
-FROM docker:20.10.7  # Use the Docker client image
+# Stage 2: Run the application
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar /app/
 
