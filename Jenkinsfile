@@ -84,7 +84,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'docker-secret', variable: 'Docker-hub-login')]) {
                         def appName = 'spring-app' // Replace with your app name
                         def dockerImage = "anilkumar9993/${appName}:${env.BUILD_NUMBER}"
-                        sh 'docker login -u anilkumar9993 -p $Docker_hub_login'
+                        sh 'docker login -u anilkumar9993 -p "$Docker_hub_login"'
                         sh "docker push ${dockerImage}"
                     }
                 }
