@@ -8,7 +8,7 @@ kind: Pod
 spec:
   containers:
   - name: maven
-    image: maven:3.8.5-openjdk-17
+    image: maven:3.8.5-openjdk-11
     command:
     - cat
     tty: true
@@ -35,11 +35,15 @@ spec:
         DOCKER_REGISTRY_CREDENTIALS = 'docker-registry-auth' // Jenkins credentials ID for Docker registry
         DOCKER_REGISTRY_URL = 'https://hub.docker.com/repositories/anilkumar9993'
         DOCKER_IMAGE_NAME = 'jenkins-sonar'
-        JAVA_HOME = '/usr/local/openjdk-17' // Ensure this matches the JDK version used in Dockerfile
+        JAVA_HOME = '/usr/local/openjdk-11' // Adjust according to the JDK version used in your Docker image
     }
 
     stages {
-        // Other stages remain unchanged
+        stage('Git Checkout') {
+            steps {
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'Git-token', url: 'https://github.com/anilkumarsripadam/jenkins-kube-project.git']])
+            }
+        }
         stage('Maven Build') {
             steps {
                 container('maven') {
@@ -47,5 +51,6 @@ spec:
                 }
             }
         }
+        // Add other stages as per your pipeline configuration
     }
 }
