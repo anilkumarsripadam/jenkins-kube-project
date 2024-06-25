@@ -91,11 +91,32 @@ pipeline {
             }
         }
         stage('kubernets-deployment'){
-            steps{
-                script{
-                    def appName = 'spring-app'
-                    def dockerImage = "anilkumar9993/${appName}:${env.BUILD_NUMBER}"
-                    writeFile file: 'k8s-deployment.yaml', text: """
+            agent{
+                kubernetes{
+                                        yaml '''
+                    apiVersion: v1
+                    kind: Pod
+                    spec:
+                      containers:
+                      - name: kubectl
+                        image: bitnami/kubectl:latest
+                        command:
+                        - cat
+                        tty: true
+                      - name: docker
+                        image: docker:latest
+                        command:
+                        - cat
+                        tty: true
+                    '''
+                }
+            }
+            steps {
+                container('kubectl') {
+                    script {
+                        def appName = 'spring-app'
+                        def dockerImage = "anilkumar9993/${appName}:${env.BUILD_NUMBER}"
+                        writeFile file: 'k8s-deployment.yaml', text: """
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -149,7 +170,7 @@ spec:
             port:
               number: 80
 """
-                    sh 'kubectl apply -f k8s-deployment.yaml'
+                        sh 'kubectl apply -f k8s-deployment.yaml'
                 }
             }    
         }
