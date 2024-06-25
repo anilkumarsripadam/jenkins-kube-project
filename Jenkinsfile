@@ -1,25 +1,30 @@
 pipeline {
     agent {
-        kubernetes {
+         kubernetes {
             label 'docker-agent'
             yaml """
-            apiVersion: v1
-            kind: Pod
-            spec:
-              containers:
-              - name: docker
-                image: docker:20.10.7
-                command:
-                - cat
-                tty: true
-                volumeMounts:
-                - name: docker-socket
-                  mountPath: /var/run/docker.sock
-              volumes:
-              - name: docker-socket
-                hostPath:
-                  path: /var/run/docker.sock
-            """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: maven
+    image: maven:3.8.5-openjdk-11
+    command:
+    - cat
+    tty: true
+  - name: docker
+    image: docker:20.10.7
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: docker-socket
+      mountPath: /var/run/docker.sock
+  volumes:
+  - name: docker-socket
+    hostPath:
+      path: /var/run/docker.sock
+"""
         }
     }
 
