@@ -35,6 +35,7 @@ spec:
         DOCKER_REGISTRY_CREDENTIALS = 'docker-registry-auth' // Jenkins credentials ID for Docker registry
         DOCKER_REGISTRY_URL = 'https://hub.docker.com/repositories/anilkumar9993'
         DOCKER_IMAGE_NAME = 'jenkins-sonar'
+        JAVA_HOME = '/usr/local/openjdk-11' // Set Java home directly in environment
     }
 
     stages {
@@ -62,7 +63,6 @@ spec:
         stage('Maven Build') {
             steps {
                 container('maven') {
-                    env.JAVA_HOME = '/usr/local/openjdk-11'
                     sh 'mvn clean install'
                 }
             }
