@@ -5,25 +5,35 @@ pipeline {
             yaml """
 apiVersion: v1
 kind: Pod
+metadata:
+  name: my-app-pod
 spec:
+  initContainers:
+    - name: build-image
+      image: docker:latest
+      volumeMounts:
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
+        - name: app-source
+          mountPath: /app
+      command: ["sh", "-c", "git clone https://github.com/anilkumarsripadam/jenkins-kube-project.git /app && cd /app && docker build -t jenkin-test:latest ."]
   containers:
-  - name: maven
-    image: maven:3.8.5-openjdk-11
-    command:
-    - cat
-    tty: true
-  - name: docker
-    image: docker:20.10.7
-    command:
-    - cat
-    tty: true
-    volumeMounts:
-    - name: docker-socket
-      mountPath: /var/run/docker.sock
+    - name: maven
+      image: maven:3.8.5-openjdk-11
+      command:
+        - cat
+      tty: true
+    - name: your-app-container
+      image: your-image:latest
+      ports:
+        - containerPort: 80
   volumes:
-  - name: docker-socket
-    hostPath:
-      path: /var/run/docker.sock
+    - name: docker-socket
+      hostPath:
+        path: /var/run/docker.sock
+    - name: app-source
+      emptyDir: {}
+
 """
         }
     }
@@ -82,7 +92,7 @@ spec:
                     waitForQualityGate abortPipeline: false, credentialsId: 'sonar-secret'
                 }
             }
-        }
+        }a
         stage('Upload WAR File to Nexus') {
             steps {
                 container('maven') {
