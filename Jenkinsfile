@@ -84,7 +84,7 @@ pipeline {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'docker-registry-auth') {
                         def appName = 'spring-app'
-                        def dockerImage = docker.image("${appName}:${env.BUILD_NUMBER}")
+                        def dockerImage = docker.image("anilkumar9993/${appName}:${env.BUILD_NUMBER}")
                         dockerImage.push()
                     }
                 }
