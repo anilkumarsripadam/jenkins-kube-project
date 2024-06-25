@@ -1,10 +1,35 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            label 'docker-agent'
+            yaml """
+            apiVersion: v1
+            kind: Pod
+            spec:
+              containers:
+              - name: docker
+                image: docker:20.10.7
+                command:
+                - cat
+                tty: true
+                volumeMounts:
+                - name: docker-socket
+                  mountPath: /var/run/docker.sock
+              volumes:
+              - name: docker-socket
+                hostPath:
+                  path: /var/run/docker.sock
+            """
+        }
+    }
 
     environment {
         REMOTE_SERVER = '10.21.34.232'
         SSH_USER = 'anil'
         SSH_CREDENTIALS_ID = 'ssh-key' // Jenkins credentials ID for SSH private key
+        DOCKER_REGISTRY_CREDENTIALS = 'docker-registry-auth' // Jenkins credentials ID for Docker registry
+        DOCKER_REGISTRY_URL = 'https://hub.docker.com/repositories/anilkumar9993'
+        DOCKER_IMAGE_NAME = 'jenkins-sonar'
     }
 
     stages {
@@ -13,68 +38,74 @@ pipeline {
                 checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'Git-token', url: 'https://github.com/anilkumarsripadam/jenkins-kube-project.git']])
             }
         }
-        stage('Maven test'){
-            steps{
-                script{
-                    sh 'mvn test'
+        stage('Maven test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        stage('Integration Testing') {
+            steps {
+                sh 'mvn verify -DskipUnitTests'
+            }
+        }
+        stage('Maven Build') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+        stage('Static Code Analysis') {
+            steps {
+                withSonarQubeEnv('sonar-secret') {
+                    sh 'mvn clean package sonar:sonar'
                 }
             }
         }
-        stage('intigration testing'){
-            steps{
-                script{
-                    sh 'mvn verify -DskipUnitTests'
-                }
+        stage('Quality Gate') {
+            steps {
+                waitForQualityGate abortPipeline: false, credentialsId: 'sonar-secret'
             }
         }
-        stage('maven build'){
-            steps{
-                script{
-                    sh 'mvn clean install'
-                }
-            }
-        }
-        stage('static code analysis'){
-            steps{
-                script{
-                    withSonarQubeEnv(credentialsId: 'sonar-secret'){
-                        sh 'mvn clean package sonar:sonar'
-                    }
-                }
-            }
-        }
-        stage('Quality Gate'){
-            steps{
-                script{
-                    waitForQualityGate abortPipeline: false, credentialsId: 'sonar-secret'
-                }
-            }
-        }
-        stage('upload war file to nexus'){
-            steps{
-                script{
+        stage('Upload WAR File to Nexus') {
+            steps {
+                script {
                     def readPomVersion = readMavenPom file: 'pom.xml'
                     def version = readPomVersion.version
                     def artifactPath = "target/ci-cd-${version}.jar"
-                    def nexusRepo = readPomVersion.version.endsWith('SNAPSHOT') ? "spring-boot-snapshot" : "sring-boot-release"
-                    nexusArtifactUploader artifacts: 
-                    [
-                        [
-                            artifactId: 'ci-cd', 
-                            classifier: '', 
-                            file: artifactPath, 
-                            type: 'jar'
-                        ]
+                    def nexusRepo = readPomVersion.version.endsWith('SNAPSHOT') ? "spring-boot-snapshot" : "spring-boot-release"
+                    nexusArtifactUploader artifacts: [
+                        [artifactId: 'ci-cd', classifier: '', file: artifactPath, type: 'jar']
                     ],
-                    credentialsId: 'nexus-auth', 
-                    groupId: 'com.example', 
-                    nexusUrl: '10.21.34.152:8081', 
-                    nexusVersion: 'nexus3', 
-                    protocol: 'http', 
-                    repository: nexusRepo, 
+                    credentialsId: 'nexus-auth',
+                    groupId: 'com.example',
+                    nexusUrl: '10.21.34.152:8081',
+                    nexusVersion: 'nexus3',
+                    protocol: 'http',
+                    repository: nexusRepo,
                     version: "${readPomVersion.version}"
                 }
             }
         }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def readPomVersion = readMavenPom file: 'pom.xml'
+                    def version = readPomVersion.version
+                    def dockerImage = "${DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAME}:${version}"
+                    sh "docker build -t ${dockerImage} ."
+                }
+            }
+        }
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    def readPomVersion = readMavenPom file: 'pom.xml'
+                    def version = readPomVersion.version
+                    def dockerImage = "${DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAME}:${version}"
+                    withDockerRegistry([ credentialsId: DOCKER_REGISTRY_CREDENTIALS, url: DOCKER_REGISTRY_URL ]) {
+                        sh "docker push ${dockerImage}"
+                    }
+                }
+            }
+        }
     }
-}       
+}
