@@ -82,7 +82,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://hub.docker.com/repositories/anilkumar9993', 'docker-registry-auth') { // Replace with your Docker registry URL and credentials ID
-                        def appName = 'your-app-name' // Replace with your app name
+                        def appName = 'spring-app' // Replace with your app name
                         def dockerImage = "${appName}:${env.BUILD_NUMBER}"
                         sh "docker push ${dockerImage}"
                     }
