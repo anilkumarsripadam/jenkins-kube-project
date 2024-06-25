@@ -81,11 +81,10 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'docker-secret', variable: 'Docker-hub-login')]) {
-                        def appName = 'spring-app' // Replace with your app name
-                        def dockerImage = "anilkumar9993/${appName}:${env.BUILD_NUMBER}"
-                        sh 'docker login -u anilkumar9993 -p "$Docker_hub_login"'
-                        sh "docker push ${dockerImage}"
+                    docker.withRegistry('https://index.docker.io/v1/', 'docker-registry-auth') {
+                        def appName = 'spring-app'
+                        def dockerImage = docker.image("${appName}:${env.BUILD_NUMBER}")
+                        dockerImage.push()
                     }
                 }
             }
