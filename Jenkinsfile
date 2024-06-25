@@ -81,9 +81,10 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    docker.withRegistry('https://hub.docker.com/repositories/anilkumar9993', 'docker-registry-auth') { // Replace with your Docker registry URL and credentials ID
+                    withCredentials([string(credentialsId: 'docker-secret', variable: 'Docker-hub-login')]) {
                         def appName = 'spring-app' // Replace with your app name
-                        def dockerImage = "${appName}:${env.BUILD_NUMBER}"
+                        def dockerImage = "anilkumar9993/${appName}:${env.BUILD_NUMBER}"
+                        sh 'docker login -u anilkumar9993 -p $Docker_hub_login'
                         sh "docker push ${dockerImage}"
                     }
                 }
@@ -92,7 +93,7 @@ pipeline {
         stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    def appName = 'your-app-name' // Replace with your app name
+                    def appName = 'spring-app' // Replace with your app name
                     def dockerImage = "${appName}:${env.BUILD_NUMBER}"
 
                     // Substitute the Docker image in the deployment.yaml
