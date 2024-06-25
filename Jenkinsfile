@@ -23,6 +23,11 @@ spec:
       command:
         - cat
       tty: true
+    - name: docker
+      image: docker:latest
+      volumeMounts:
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
     - name: your-app-container
       image: your-image:latest
       ports:
@@ -33,7 +38,6 @@ spec:
         path: /var/run/docker.sock
     - name: app-source
       emptyDir: {}
-
 """
         }
     }
@@ -56,7 +60,7 @@ spec:
                 }
             }
         }
-        stage('Maven test') {
+        stage('Maven Test') {
             steps {
                 container('maven') {
                     sh 'mvn test'
