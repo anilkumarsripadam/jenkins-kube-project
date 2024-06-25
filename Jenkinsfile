@@ -92,7 +92,7 @@ spec:
                     waitForQualityGate abortPipeline: false, credentialsId: 'sonar-secret'
                 }
             }
-        }a
+        }
         stage('Upload WAR File to Nexus') {
             steps {
                 container('maven') {
