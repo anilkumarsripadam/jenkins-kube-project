@@ -60,7 +60,8 @@ spec:
         stage('Maven Build') {
             steps {
                 container('maven') {
-                    sh 'mvn clean install'
+                env.JAVA_HOME = '/usr/local/openjdk-11'  // Adjust the path based on your JDK 11 location
+                sh 'mvn clean install'
                 }
             }
         }
