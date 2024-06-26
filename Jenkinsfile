@@ -90,46 +90,13 @@ pipeline {
                 }
             }
         }
-stage('Kubernetes Deployment') {
-    steps {
-        script {
-            def appName = 'spring-app'
-            def dockerImage = "anilkumar9993/${appName}:${env.BUILD_NUMBER}"
-            
-            // Define Kubernetes manifest YAML
-            def kubeManifest = '''
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ${appName}-pod
-  labels:
-    app: ${appName}
-spec:
-  containers:
-  - name: ${appName}
-    image: ${dockerImage}
-    ports:
-    - containerPort: 8080
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ${appName}-service
-spec:
-  type: LoadBalancer
-  selector:
-    app: ${appName}
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8080
-'''
-            
-            // Deploy to Kubernetes
-            writeFile file: 'kube-manifest.yaml', text: kubeManifest
-            sh './kubectl apply -f kube-manifest.yaml'
+
+        node{
+            stage('kubernetes deployment'){
+                    withKubeConfig([credentialsId: 'kube-secret', serverUrl: 'https://lb.kubesphere.local:6443']) {
+                        sh 'kubectl apply -f deployment.yaml'
+            }
         }
-      }
-   }
- }
+    }
+  }
 }
