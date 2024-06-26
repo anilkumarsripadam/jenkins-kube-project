@@ -39,6 +39,9 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: sring-app-ingress
+  annotations:
+    #    kubernetes.io/ingress.class: "haproxy"
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   ingressClassName: nginx
   rules:
