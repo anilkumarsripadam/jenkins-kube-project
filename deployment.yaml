@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: your-app-name
+  name: sring-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: your-app-name
+      app: sring-app
   template:
     metadata:
       labels:
-        app: your-app-name
+        app: sring-app
     spec:
       containers:
-      - name: your-app-name
-        image: <IMAGE> # This placeholder will be replaced by the actual image
+      - name: sring-app
+        image: <IMAGE> 
         ports:
         - containerPort: 8080
 
@@ -23,10 +23,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: your-app-name
+  name: sring-app-service
 spec:
   selector:
-    app: your-app-name
+    app: sring-app
   ports:
     - protocol: TCP
       port: 80
@@ -37,16 +37,16 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: your-app-name-ingress
+  name: sring-app-ingress
 spec:
   rules:
-  - host: your-app.example.com
+  - host: spring.local
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: your-app-name
+            name: sring-app
             port:
               number: 80
