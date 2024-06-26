@@ -90,11 +90,14 @@ pipeline {
                 }
             }
         }
-        stage('kubernets-deployment'){
-            steps{
-                agent{
-                    kubernetes{
-                                        yaml '''
+stage('Kubernetes Deployment') {
+    steps {
+        script {
+            def appName = 'spring-app'
+            def dockerImage = "anilkumar9993/${appName}:${env.BUILD_NUMBER}"
+            
+            // Define Kubernetes manifest YAML
+            def kubeManifest = '''
 apiVersion: v1
 kind: Pod
 metadata:
@@ -121,9 +124,12 @@ spec:
     port: 80
     targetPort: 8080
 '''
-                }
-            }
+            
+            // Deploy to Kubernetes
+            writeFile file: 'kube-manifest.yaml', text: kubeManifest
+            sh 'kubectl apply -f kube-manifest.yaml'
         }
-    }
+      }
+   }
  }
 }
