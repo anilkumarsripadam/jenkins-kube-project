@@ -127,7 +127,7 @@ spec:
             
             // Deploy to Kubernetes
             writeFile file: 'kube-manifest.yaml', text: kubeManifest
-            sh 'kubectl apply -f kube-manifest.yaml'
+            sh './kubectl apply -f kube-manifest.yaml'
         }
       }
    }
