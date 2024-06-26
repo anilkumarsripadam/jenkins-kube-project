@@ -90,8 +90,6 @@ pipeline {
                 }
             }
         }
-
-        node{
             stage('kubernetes deployment'){
                     withKubeConfig([credentialsId: 'kube-secret', serverUrl: 'https://lb.kubesphere.local:6443']) {
                         sh 'kubectl apply -f deployment.yaml'
@@ -99,4 +97,3 @@ pipeline {
         }
     }
   }
-}
