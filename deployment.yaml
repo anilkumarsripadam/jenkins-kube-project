@@ -39,6 +39,7 @@ kind: Ingress
 metadata:
   name: sring-app-ingress
 spec:
+  ingressClassName: nginx
   rules:
   - host: spring.local
     http:
