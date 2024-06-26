@@ -91,8 +91,9 @@ pipeline {
             }
         }
         stage('kubernets-deployment'){
-            agent{
-                kubernetes{
+            steps{
+                agent{
+                    kubernetes{
                                         yaml '''
 apiVersion: v1
 kind: Pod
@@ -125,3 +126,4 @@ spec:
         }
     }
  }
+}
