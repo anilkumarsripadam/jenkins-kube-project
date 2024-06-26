@@ -50,4 +50,3 @@ spec:
             name: your-app-name
             port:
               number: 80
-
