@@ -94,86 +94,34 @@ pipeline {
             agent{
                 kubernetes{
                                         yaml '''
-                    apiVersion: v1
-                    kind: Pod
-                    spec:
-                      containers:
-                      - name: kubectl
-                        image: bitnami/kubectl:latest
-                        command:
-                        - cat
-                        tty: true
-                      - name: docker
-                        image: docker:latest
-                        command:
-                        - cat
-                        tty: true
-                    '''
-                }
-            }
-            steps {
-                container('kubectl') {
-                    script {
-                        def appName = 'spring-app'
-                        def dockerImage = "anilkumar9993/${appName}:${env.BUILD_NUMBER}"
-                        writeFile file: 'k8s-deployment.yaml', text: """
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
-  name: ${appName}
+  name: ${appName}-pod
+  labels:
+    app: ${appName}
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ${appName}
-  template:
-    metadata:
-      labels:
-        app: ${appName}
-    spec:
-      containers:
-      - name: ${appName}
-        image: ${dockerImage}
-        ports:
-        - containerPort: 8080
-
+  containers:
+  - name: ${appName}
+    image: ${dockerImage}
+    ports:
+    - containerPort: 8080
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
-  name: ${appName}
+  name: ${appName}-service
 spec:
+  type: LoadBalancer
   selector:
     app: ${appName}
   ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
-
----
-
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: ${appName}-ingress
-spec:
-  rules:
-  - host: ${appName}.example.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: ${appName}
-            port:
-              number: 80
-"""
-                        sh 'kubectl apply -f k8s-deployment.yaml'
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+'''
                 }
-            }    
+            }
         }
     }
  }
-}
